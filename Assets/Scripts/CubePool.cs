@@ -9,6 +9,7 @@ public class CubePool : MonoBehaviour
     [SerializeField] private int initialPoolSize = InitialPoolSize;
 
     private readonly Queue<FallingCube> availableCubes = new();
+    private readonly List<FallingCube> createdCubes = new();
 
     public FallingCube GetCube()
     {
@@ -18,7 +19,7 @@ public class CubePool : MonoBehaviour
         return availableCubes.Dequeue();
     }
 
-    public void ReturnCube(FallingCube cube)
+    private void ReturnCube(FallingCube cube)
     {
         cube.gameObject.SetActive(false);
         availableCubes.Enqueue(cube);
@@ -37,7 +38,26 @@ public class CubePool : MonoBehaviour
     private FallingCube CreateCube()
     {
         FallingCube cube = Instantiate(cubePrefab, transform);
-        cube.Initialize(this);
+        cube.LifeTimeExpired += OnCubeLifeTimeExpired;
+
+        createdCubes.Add(cube);
+
         return cube;
+    }
+
+    private void OnCubeLifeTimeExpired(FallingCube cube)
+    {
+        ReturnCube(cube);
+    }
+
+    private void OnDestroy()
+    {
+        foreach (FallingCube cube in createdCubes)
+        {
+            if (cube is not null)
+            {
+                cube.LifeTimeExpired -= OnCubeLifeTimeExpired;
+            }
+        }
     }
 }

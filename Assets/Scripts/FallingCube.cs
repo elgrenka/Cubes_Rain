@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class FallingCube : MonoBehaviour
 {
@@ -6,19 +8,14 @@ public class FallingCube : MonoBehaviour
     private const float MinLifeTime = 2f;
     private const float MaxLifeTime = 5f;
     private const string CubePlatformTag = "Platform";
-    
-    [SerializeField] private Renderer cubeRenderer;
 
-    private CubePool cubePool;
+    [SerializeField] private Renderer cubeRenderer;
 
     private bool hasColorChanged;
     private float lifeTime;
     private float lifeTimeTimer;
 
-    public void Initialize(CubePool pool)
-    {
-        cubePool = pool;
-    }
+    public event Action<FallingCube> LifeTimeExpired;
 
     public void Activate(Vector3 spawnPosition, Color startColor)
     {
@@ -41,7 +38,7 @@ public class FallingCube : MonoBehaviour
         lifeTimeTimer += Time.deltaTime;
 
         if (lifeTimeTimer >= lifeTime)
-            cubePool.ReturnCube(this);
+            LifeTimeExpired?.Invoke(this);
     }
 
     private void OnCollisionEnter(Collision collision)
