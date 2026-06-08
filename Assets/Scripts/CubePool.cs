@@ -5,42 +5,53 @@ public class CubePool : MonoBehaviour
 {
     private const int InitialPoolSize = 50;
 
-    [SerializeField] private FallingCube cubePrefab;
-    [SerializeField] private int initialPoolSize = InitialPoolSize;
+    [SerializeField] private FallingCube _cubePrefab;
+    [SerializeField] private int _initialPoolSize = InitialPoolSize;
 
-    private readonly Queue<FallingCube> availableCubes = new();
-    private readonly List<FallingCube> createdCubes = new();
+    private readonly Queue<FallingCube> _availableCubes = new();
+    private readonly List<FallingCube> _createdCubes = new();
+
+    private void Awake()
+    {
+        for (int i = 0; i < _initialPoolSize; i++)
+        {
+            FallingCube cube = CreateCube();
+            cube.gameObject.SetActive(false);
+            _availableCubes.Enqueue(cube);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        foreach (FallingCube cube in _createdCubes)
+        {
+            if (cube is not null)
+            {
+                cube.LifeTimeExpired -= OnCubeLifeTimeExpired;
+            }
+        }
+    }
 
     public FallingCube GetCube()
     {
-        if (availableCubes.Count == 0)
-            availableCubes.Enqueue(CreateCube());
+        if (_availableCubes.Count == 0)
+            _availableCubes.Enqueue(CreateCube());
 
-        return availableCubes.Dequeue();
+        return _availableCubes.Dequeue();
     }
 
     private void ReturnCube(FallingCube cube)
     {
         cube.gameObject.SetActive(false);
-        availableCubes.Enqueue(cube);
-    }
-
-    private void Awake()
-    {
-        for (int i = 0; i < initialPoolSize; i++)
-        {
-            FallingCube cube = CreateCube();
-            cube.gameObject.SetActive(false);
-            availableCubes.Enqueue(cube);
-        }
+        _availableCubes.Enqueue(cube);
     }
 
     private FallingCube CreateCube()
     {
-        FallingCube cube = Instantiate(cubePrefab, transform);
+        FallingCube cube = Instantiate(_cubePrefab, transform);
         cube.LifeTimeExpired += OnCubeLifeTimeExpired;
 
-        createdCubes.Add(cube);
+        _createdCubes.Add(cube);
 
         return cube;
     }
@@ -48,16 +59,5 @@ public class CubePool : MonoBehaviour
     private void OnCubeLifeTimeExpired(FallingCube cube)
     {
         ReturnCube(cube);
-    }
-
-    private void OnDestroy()
-    {
-        foreach (FallingCube cube in createdCubes)
-        {
-            if (cube is not null)
-            {
-                cube.LifeTimeExpired -= OnCubeLifeTimeExpired;
-            }
-        }
     }
 }

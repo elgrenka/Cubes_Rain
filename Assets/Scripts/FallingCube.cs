@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -7,50 +8,59 @@ public class FallingCube : MonoBehaviour
     private const float TimeZero = 0f;
     private const float MinLifeTime = 2f;
     private const float MaxLifeTime = 5f;
-    private const string CubePlatformTag = "Platform";
 
-    [SerializeField] private Renderer cubeRenderer;
+    [SerializeField] private Renderer _cubeRenderer;
 
-    private bool hasColorChanged;
-    private float lifeTime;
-    private float lifeTimeTimer;
+    private bool _hasColorChanged;
+    private float _lifeTime;
+    private Coroutine _lifeTimeRoutine;
 
     public event Action<FallingCube> LifeTimeExpired;
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (_hasColorChanged)
+            return;
+
+        if (collision.gameObject.TryGetComponent<Platform>(out _) == false)
+            return;
+
+        _hasColorChanged = true;
+        _cubeRenderer.material.color = Random.ColorHSV();
+        _lifeTime = Random.Range(MinLifeTime, MaxLifeTime + 1);
+        _lifeTimeRoutine = StartCoroutine(LifeTimeRoutine());
+    }
+
+    private void OnDisable()
+    {
+        StopLifeTimeRoutine();
+    }
+
     public void Activate(Vector3 spawnPosition, Color startColor)
     {
+        StopLifeTimeRoutine();
+
         transform.position = spawnPosition;
-
-        cubeRenderer.material.color = startColor;
-
-        hasColorChanged = false;
-        lifeTimeTimer = TimeZero;
-        lifeTime = TimeZero;
+        _cubeRenderer.material.color = startColor;
+        _hasColorChanged = false;
+        _lifeTime = TimeZero;
 
         gameObject.SetActive(true);
     }
 
-    private void Update()
+    private IEnumerator LifeTimeRoutine()
     {
-        if (hasColorChanged == false)
-            return;
+        yield return new WaitForSeconds(_lifeTime);
 
-        lifeTimeTimer += Time.deltaTime;
-
-        if (lifeTimeTimer >= lifeTime)
-            LifeTimeExpired?.Invoke(this);
+        LifeTimeExpired?.Invoke(this);
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void StopLifeTimeRoutine()
     {
-        if (hasColorChanged)
-            return;
-
-        if (collision.gameObject.CompareTag(CubePlatformTag) == false)
-            return;
-
-        hasColorChanged = true;
-        cubeRenderer.material.color = Random.ColorHSV();
-        lifeTime = Random.Range(MinLifeTime, MaxLifeTime + 1);
+        if (_lifeTimeRoutine is not null)
+        {
+            StopCoroutine(_lifeTimeRoutine);
+            _lifeTimeRoutine = null;
+        }
     }
 }
