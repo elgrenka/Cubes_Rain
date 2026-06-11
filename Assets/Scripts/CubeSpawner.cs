@@ -14,7 +14,7 @@ public class CubeSpawner : MonoBehaviour
     [SerializeField] private float _spawnAreaWidth = SpawnAreaWidth;
     [SerializeField] private float _spawnAreaLength = SpawnAreaLength;
     [SerializeField] private float _spawnHeight = SpawnHeight;
-    [SerializeField] private Color _initialCubeColor = Color.crimson;
+    [SerializeField] private Color _initialCubeColor = Color.red;
 
     private Coroutine _spawnRoutine;
 
@@ -34,12 +34,13 @@ public class CubeSpawner : MonoBehaviour
 
     private IEnumerator SpawnCubesRoutine()
     {
-        yield return new WaitForSeconds(_spawnInterval);
+        var wait = new WaitForSeconds(_spawnInterval);
 
-        SpawnCube();
-
-        if (isActiveAndEnabled)
-            _spawnRoutine = StartCoroutine(SpawnCubesRoutine());
+        while (enabled)
+        {
+            yield return wait;
+            SpawnCube();
+        }
     }
 
     private void SpawnCube()
@@ -50,6 +51,14 @@ public class CubeSpawner : MonoBehaviour
         Vector3 spawnPosition = new Vector3(randomX, _spawnHeight, randomZ);
 
         FallingCube cube = _cubePool.GetCube();
+
+        cube.LifeTimeExpired += OnCubeLifeTimeExpired;
         cube.Activate(spawnPosition, _initialCubeColor);
+    }
+
+    private void OnCubeLifeTimeExpired(FallingCube cube)
+    {
+        cube.LifeTimeExpired -= OnCubeLifeTimeExpired;
+        _cubePool.ReturnCube(cube);
     }
 }

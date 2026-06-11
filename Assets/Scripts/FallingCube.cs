@@ -5,14 +5,12 @@ using Random = UnityEngine.Random;
 
 public class FallingCube : MonoBehaviour
 {
-    private const float TimeZero = 0f;
     private const float MinLifeTime = 2f;
     private const float MaxLifeTime = 5f;
 
     [SerializeField] private Renderer _cubeRenderer;
 
     private bool _hasColorChanged;
-    private float _lifeTime;
     private Coroutine _lifeTimeRoutine;
 
     public event Action<FallingCube> LifeTimeExpired;
@@ -27,8 +25,7 @@ public class FallingCube : MonoBehaviour
 
         _hasColorChanged = true;
         _cubeRenderer.material.color = Random.ColorHSV();
-        _lifeTime = Random.Range(MinLifeTime, MaxLifeTime + 1);
-        _lifeTimeRoutine = StartCoroutine(LifeTimeRoutine());
+        _lifeTimeRoutine = StartCoroutine(LifeTimeRoutine(Random.Range(MinLifeTime, MaxLifeTime + 1)));
     }
 
     private void OnDisable()
@@ -43,14 +40,18 @@ public class FallingCube : MonoBehaviour
         transform.position = spawnPosition;
         _cubeRenderer.material.color = startColor;
         _hasColorChanged = false;
-        _lifeTime = TimeZero;
 
         gameObject.SetActive(true);
     }
 
-    private IEnumerator LifeTimeRoutine()
+    public void Deactivate()
     {
-        yield return new WaitForSeconds(_lifeTime);
+        gameObject.SetActive(false);
+    }
+
+    private IEnumerator LifeTimeRoutine(float lifeTime)
+    {
+        yield return new WaitForSeconds(lifeTime);
 
         LifeTimeExpired?.Invoke(this);
     }
