@@ -290,7 +290,7 @@ MonoBehaviour:
   _spawnAreaWidth: 20
   _spawnAreaLength: 20
   _spawnHeight: 30
-  _initialCubeColor: {r: 0.8627452, g: 0.07843138, b: 0.2352941, a: 1}
+  _initialCubeColor: {r: 0.4862745, g: 0.9882354, b: 0, a: 1}
 --- !u!4 &350855225
 Transform:
   m_ObjectHideFlags: 0
