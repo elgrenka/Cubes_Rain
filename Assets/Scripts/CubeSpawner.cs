@@ -45,20 +45,24 @@ public class CubeSpawner : MonoBehaviour
 
     private void SpawnCube()
     {
-        float randomX = Random.Range(-_spawnAreaWidth * Half, _spawnAreaWidth * Half + 1);
-        float randomZ = Random.Range(-_spawnAreaLength * Half, _spawnAreaLength * Half + 1);
-
-        Vector3 spawnPosition = new Vector3(randomX, _spawnHeight, randomZ);
-
         FallingCube cube = _cubePool.GetCube();
 
         cube.LifeTimeExpired += OnCubeLifeTimeExpired;
-        cube.Activate(spawnPosition, _initialCubeColor);
+        cube.Activate(GetRandomSpawnPosition(), _initialCubeColor);
     }
 
     private void OnCubeLifeTimeExpired(FallingCube cube)
     {
         cube.LifeTimeExpired -= OnCubeLifeTimeExpired;
+
         _cubePool.ReturnCube(cube);
+    }
+
+    private Vector3 GetRandomSpawnPosition()
+    {
+        float randomX = Random.Range(-_spawnAreaWidth * Half, _spawnAreaWidth * Half);
+        float randomZ = Random.Range(-_spawnAreaLength * Half, _spawnAreaLength * Half);
+
+        return new Vector3(randomX, _spawnHeight, randomZ);
     }
 }

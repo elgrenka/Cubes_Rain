@@ -25,7 +25,9 @@ public class FallingCube : MonoBehaviour
 
         _hasColorChanged = true;
         _cubeRenderer.material.color = Random.ColorHSV();
-        _lifeTimeRoutine = StartCoroutine(LifeTimeRoutine(Random.Range(MinLifeTime, MaxLifeTime + 1)));
+
+        float lifeTime = Random.Range(MinLifeTime, MaxLifeTime);
+        _lifeTimeRoutine = StartCoroutine(LifeTimeRoutine(lifeTime));
     }
 
     private void OnDisable()
